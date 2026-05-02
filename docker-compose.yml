@@ -181,6 +181,11 @@ services:
       PROXY_CSP_CONFIG_FILE_LOCATION: /etc/opencloud/csp.yaml
       OC_PASSWORD_POLICY_BANNED_PASSWORDS_LIST: banned-password-list.txt
       OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD: "true"
+      # collabora wiring (only useful when --profile office is up):
+      COLLABORA_DOMAIN: collabora.${DOMAIN:-localhost}
+      NATS_NATS_HOST: 0.0.0.0
+      GATEWAY_GRPC_ADDR: 0.0.0.0:9142
+      FRONTEND_APP_HANDLER_SECURE_VIEW_APP_ADDR: eu.opencloud.api.collaboration
     volumes:
       - ./config/opencloud/csp.yaml:/etc/opencloud/csp.yaml:ro
       - ./config/opencloud/banned-password-list.txt:/etc/opencloud/banned-password-list.txt:ro
@@ -188,6 +193,137 @@ services:
       - ./opencloud/data:/var/lib/opencloud
     ports:
       - "127.0.0.1:9200:9200"
+    logging: *default-logging
+
+  # collaboration: opencloud's wopi bridge to collabora. profile: office
+  collaboration:
+    image: opencloudeu/opencloud-rolling:${OC_DOCKER_TAG:-6.1.0}
+    container_name: qanat-collaboration
+    restart: unless-stopped
+    profiles: [office]
+    user: "${OC_UID_GID:-1000:1000}"
+    entrypoint: ["/bin/sh"]
+    command: ["-c", "opencloud collaboration server"]
+    depends_on:
+      opencloud:
+        condition: service_started
+      collabora:
+        condition: service_healthy
+    environment:
+      COLLABORATION_GRPC_ADDR: 0.0.0.0:9301
+      COLLABORATION_HTTP_ADDR: 0.0.0.0:9300
+      MICRO_REGISTRY: nats-js-kv
+      MICRO_REGISTRY_ADDRESS: opencloud:9233
+      COLLABORATION_WOPI_SRC: https://collaboration.${DOMAIN:-localhost}
+      COLLABORATION_APP_NAME: CollaboraOnline
+      COLLABORATION_APP_PRODUCT: Collabora
+      COLLABORATION_APP_ADDR: https://collabora.${DOMAIN:-localhost}
+      COLLABORATION_APP_ICON: https://collabora.${DOMAIN:-localhost}/favicon.ico
+      COLLABORATION_APP_INSECURE: "false"
+      COLLABORATION_CS3API_DATAGATEWAY_INSECURE: "false"
+      COLLABORATION_LOG_LEVEL: ${OC_LOG_LEVEL:-info}
+      OC_URL: https://cloud.${DOMAIN:-localhost}
+    volumes:
+      - ./opencloud/config:/etc/opencloud
+    logging: *default-logging
+
+  # collabora online: actual office editor. profile: office
+  collabora:
+    image: collabora/code:25.04.9.4.1
+    container_name: qanat-collabora
+    restart: unless-stopped
+    profiles: [office]
+    cap_add: [SYS_ADMIN]
+    security_opt:
+      - seccomp=unconfined
+      - apparmor:unconfined
+    environment:
+      aliasgroup1: https://collaboration.${DOMAIN:-localhost}
+      DONT_GEN_SSL_CERT: "YES"
+      extra_params: --o:ssl.enable=false --o:ssl.termination=true --o:welcome.enable=false --o:net.frame_ancestors=cloud.${DOMAIN:-localhost} --o:net.lok_allow.host[14]=cloud.${DOMAIN:-localhost} --o:home_mode.enable=false
+      username: ${COLLABORA_ADMIN_USER:-admin}
+      password: ${COLLABORA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - /usr/share/fonts/truetype:/usr/share/fonts/truetype/more:ro
+      - /usr/share/fonts/truetype:/opt/cool/systemplate/usr/share/fonts/truetype/more:ro
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["coolconfig generate-proof-key && /start-collabora-online.sh"]
+    ports:
+      - "127.0.0.1:9980:9980"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9980/hosting/discovery"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    logging: *default-logging
+
+  # keycloak: identity provider. profile: sso
+  # gates the gateable services through oauth2-proxy. opencloud and jellyfin
+  # have native sso plugins - configured separately, see docs/sso.md.
+  keycloak-postgres:
+    image: postgres:17-alpine
+    container_name: qanat-keycloak-postgres
+    restart: unless-stopped
+    profiles: [sso]
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USERNAME:-keycloak}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+    volumes:
+      - ./keycloak/postgres:/var/lib/postgresql/data
+    logging: *default-logging
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6
+    container_name: qanat-keycloak
+    restart: unless-stopped
+    profiles: [sso]
+    depends_on: [keycloak-postgres]
+    command: ["start", "--optimized"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME:-keycloak}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: auth.${DOMAIN:-localhost}
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_FEATURES: impersonation
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-kcadmin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    ports:
+      - "127.0.0.1:8088:8080"
+    logging: *default-logging
+
+  # oauth2-proxy: forward-auth gate. caddy asks "is this user logged in?"
+  # before letting requests reach aria/metube/navidrome.
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: qanat-oauth2-proxy
+    restart: unless-stopped
+    profiles: [sso]
+    depends_on: [keycloak]
+    command:
+      - --http-address=0.0.0.0:4180
+      - --reverse-proxy=true
+      - --provider=keycloak-oidc
+      - --oidc-issuer-url=https://auth.${DOMAIN:-localhost}/realms/qanat
+      - --redirect-url=https://auth-gate.${DOMAIN:-localhost}/oauth2/callback
+      - --client-id=${OAUTH2_PROXY_CLIENT_ID:-qanat-gate}
+      - --client-secret=${OAUTH2_PROXY_CLIENT_SECRET}
+      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET}
+      - --cookie-domain=.${DOMAIN:-localhost}
+      - --cookie-secure=true
+      - --cookie-samesite=lax
+      - --whitelist-domain=.${DOMAIN:-localhost}
+      - --email-domain=*
+      - --upstream=static://200
+      - --skip-provider-button=true
+      - --pass-access-token=true
+      - --set-xauthrequest=true
+    ports:
+      - "127.0.0.1:4180:4180"
     logging: *default-logging
 
   # homepage: single-page dashboard linking out to every service above.

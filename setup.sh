@@ -17,6 +17,7 @@ mkdir -p \
     navidrome/data \
     opencloud/config opencloud/data \
     homepage/icons \
+    keycloak/postgres \
     examples
 
 if [[ ! -f examples/cookies.txt.example ]]; then

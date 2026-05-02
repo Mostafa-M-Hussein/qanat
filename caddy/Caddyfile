@@ -2,8 +2,19 @@
 
 {
     email {$ACME_EMAIL}
-    # Sensible defaults; uncomment to enable HTTP/3 explicitly:
-    # servers { protocols h1 h2 h3 }
+}
+
+# shared snippet: gate a site behind keycloak via oauth2-proxy.
+# only kicks in when --profile sso is up.
+(sso_gate) {
+    forward_auth oauth2-proxy:4180 {
+        uri /oauth2/auth
+        copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Preferred-Username
+        @error status 401
+        handle_response @error {
+            redir * https://auth-gate.{$DOMAIN}/oauth2/start?rd={scheme}://{host}{uri} 302
+        }
+    }
 }
 
 # ---------------------------------------------------------------
@@ -26,6 +37,8 @@ jellyfin.{$DOMAIN} {
 # AriaNG - private, basic-auth gated.
 # ---------------------------------------------------------------
 aria.{$DOMAIN} {
+    # uncomment to switch from basic-auth to keycloak (--profile sso):
+    # import sso_gate
     basic_auth {
         {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
     }
@@ -42,6 +55,8 @@ aria.{$DOMAIN} {
 # MeTube - private, basic-auth gated.
 # ---------------------------------------------------------------
 metube.{$DOMAIN} {
+    # uncomment to switch from basic-auth to keycloak (--profile sso):
+    # import sso_gate
     basic_auth {
         {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
     }
@@ -74,4 +89,28 @@ cloud.{$DOMAIN} {
 # ---------------------------------------------------------------
 {$DOMAIN} {
     reverse_proxy homepage:3000
+}
+
+# ---------------------------------------------------------------
+# Collabora online editor (profile: office). routes:
+#   collabora.DOMAIN     - the editor itself, public
+#   collaboration.DOMAIN - opencloud's WOPI bridge, internal-only path
+# ---------------------------------------------------------------
+collabora.{$DOMAIN} {
+    reverse_proxy collabora:9980
+}
+
+collaboration.{$DOMAIN} {
+    reverse_proxy collaboration:9300
+}
+
+# ---------------------------------------------------------------
+# Keycloak (profile: sso) and the oauth2-proxy callback host.
+# ---------------------------------------------------------------
+auth.{$DOMAIN} {
+    reverse_proxy keycloak:8080
+}
+
+auth-gate.{$DOMAIN} {
+    reverse_proxy oauth2-proxy:4180
 }
