@@ -1,0 +1,6 @@
+# Optional: lets homepage show container status next to each service.
+# Mount the docker socket into the homepage container to enable.
+# Keep commented out unless you actually want this — it widens the trust boundary.
+
+# qanat:
+#   socket: /var/run/docker.sock

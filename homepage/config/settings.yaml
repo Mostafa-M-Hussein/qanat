@@ -1,0 +1,19 @@
+title: qanat
+headerStyle: clean
+language: en
+theme: dark
+color: slate
+target: _blank
+hideVersion: true
+disableCollapse: true
+
+layout:
+  downloads:
+    style: row
+    columns: 2
+  media:
+    style: row
+    columns: 2
+  files:
+    style: row
+    columns: 1

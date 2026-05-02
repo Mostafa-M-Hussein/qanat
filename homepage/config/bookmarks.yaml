@@ -1,0 +1,7 @@
+- network:
+    - vps provider:
+        - abbr: VPS
+          href: https://www.netcup.eu/
+    - cloudflare:
+        - abbr: CF
+          href: https://dash.cloudflare.com/
