@@ -1,0 +1,11 @@
+# Netscape HTTP Cookie File
+# Replace this with a real export from your browser if you need
+# age-gated / login-required YouTube downloads.
+#
+# How to export:
+#   1. Install the "Get cookies.txt LOCALLY" browser extension (Firefox/Chrome).
+#   2. Sign in to YouTube in that browser.
+#   3. Open YouTube, click the extension, export to file.
+#   4. Save as cookies.txt at the path you set in COOKIES_FILE in .env.
+#
+# WARNING: this file is a session token. Keep it private.
