@@ -1,0 +1,166 @@
+name: qanat
+
+# qanat - run downloads + media on a fast vps, stream them back over a slow link.
+# named after the قناة, the underground channels that carry water across deserts.
+#
+# profiles:
+#   default   aria2 + ariang + metube + jellyfin + caddy
+#   music     adds navidrome
+#   tunnel    adds cloudflared (no public ports needed)
+#   warp      adds an outbound warp socks5 proxy
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # aria2-pro: multi-connection downloader (http/ftp/bittorrent)
+  # rpc on 127.0.0.1:6800, bt listener on $ARIA2_BT_PORT
+  aria2:
+    image: p3terx/aria2-pro:latest
+    container_name: qanat-aria2
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID:-0}
+      - PGID=${PGID:-0}
+      - UMASK_SET=022
+      - RPC_SECRET=${ARIA2_RPC_SECRET}
+      - RPC_PORT=6800
+      - LISTEN_PORT=${ARIA2_BT_PORT:-6888}
+      - DISK_CACHE=${ARIA2_DISK_CACHE:-64M}
+      - IPV6_MODE=false
+      - UPDATE_TRACKERS=true
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./aria2-config:/config
+      - ${DOWNLOADS_DIR:-./files}:/downloads
+    ports:
+      - "127.0.0.1:6800:6800"
+      - "${ARIA2_BT_PORT:-6888}:6888"
+      - "${ARIA2_BT_PORT:-6888}:6888/udp"
+    logging: *default-logging
+
+  # ariang: web ui for aria2
+  ariang:
+    image: p3terx/ariang:latest
+    container_name: qanat-ariang
+    restart: unless-stopped
+    command: --port 6880 --ipv6
+    ports:
+      - "127.0.0.1:6880:6880"
+    depends_on: [aria2]
+    logging: *default-logging
+
+  # metube: yt-dlp web ui. routes through warp when youtube blocks the vps ip.
+  metube:
+    image: ghcr.io/alexta69/metube:latest
+    container_name: qanat-metube
+    restart: unless-stopped
+    environment:
+      - UID=${PUID:-0}
+      - GID=${PGID:-0}
+      - DOWNLOAD_DIR=/downloads
+      - STATE_DIR=/downloads/.metube-state
+      - TEMP_DIR=/downloads/.metube-temp
+      - OUTPUT_TEMPLATE=${METUBE_OUTPUT_TEMPLATE:-%(uploader)s/%(title)s.%(ext)s}
+      - YTDL_OPTIONS=${METUBE_YTDL_OPTIONS}
+    volumes:
+      - ${MEDIA_DIR:-./media}/YouTube:/downloads
+      - ${COOKIES_FILE:-./examples/cookies.txt.example}:/cookies.txt:ro
+    ports:
+      - "127.0.0.1:8081:8081"
+    logging: *default-logging
+
+  # jellyfin: stream what you downloaded.
+  # uncomment the devices block if your vps has a gpu.
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: qanat-jellyfin
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-UTC}
+      - JELLYFIN_PublishedServerUrl=${JELLYFIN_URL:-http://localhost:8096}
+    volumes:
+      - ./jellyfin/config:/config
+      - ./jellyfin/cache:/cache
+      - ${MEDIA_DIR:-./media}:/media
+    ports:
+      - "127.0.0.1:8096:8096"
+    # devices:
+    #   - /dev/dri:/dev/dri  # intel/amd vaapi
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8096/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging: *default-logging
+
+  # navidrome: subsonic-compatible music streamer (optional)
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: qanat-navidrome
+    restart: unless-stopped
+    profiles: [music]
+    environment:
+      - ND_LOGLEVEL=info
+      - ND_SESSIONTIMEOUT=24h
+      - ND_BASEURL=
+      - ND_ENABLETRANSCODINGCONFIG=true
+    volumes:
+      - ./navidrome/data:/data
+      - ${MUSIC_DIR:-./media/Music}:/music:ro
+    ports:
+      - "127.0.0.1:4533:4533"
+    logging: *default-logging
+
+  # caddy: tls reverse proxy + auto letsencrypt + basic auth
+  caddy:
+    image: caddy:2-alpine
+    container_name: qanat-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/data:/data
+      - ./caddy/config:/config
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - ACME_EMAIL=${ACME_EMAIL:-admin@example.com}
+      - BASIC_AUTH_USER=${BASIC_AUTH_USER:-admin}
+      - BASIC_AUTH_HASH=${BASIC_AUTH_HASH}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    logging: *default-logging
+
+  # cloudflared: optional zero-trust tunnel (no open ports needed)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: qanat-cloudflared
+    restart: unless-stopped
+    profiles: [tunnel]
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    logging: *default-logging
+
+  # warp: optional outbound socks5 (cloudflare warp).
+  # use it when youtube/spotify block your vps ip.
+  warp:
+    image: monius/docker-warp-socks:latest
+    container_name: qanat-warp
+    restart: unless-stopped
+    profiles: [warp]
+    cap_add: [NET_ADMIN]
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv4.conf.all.src_valid_mark=1
+    ports:
+      - "127.0.0.1:40000:1080"
+    logging: *default-logging
+
+networks:
+  default:
+    name: qanat

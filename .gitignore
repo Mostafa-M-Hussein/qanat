@@ -1,0 +1,33 @@
+# Secrets and runtime config
+.env
+*.env
+!.env.example
+
+# Caddy ACME state (contains certs + account keys)
+caddy/data/
+caddy/config/
+
+# Application state
+aria2-config/
+jellyfin/config/
+jellyfin/cache/
+navidrome/data/
+
+# User content
+files/
+media/
+*.mkv
+*.mp4
+*.webm
+*.opus
+
+# Cookie files
+examples/cookies.txt
+*cookies.txt
+!examples/cookies.txt.example
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
