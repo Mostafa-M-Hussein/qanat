@@ -15,6 +15,8 @@ mkdir -p \
     media/{Movies,TV,Music,YouTube} \
     jellyfin/config jellyfin/cache \
     navidrome/data \
+    opencloud/config opencloud/data \
+    homepage/icons \
     examples
 
 if [[ ! -f examples/cookies.txt.example ]]; then
@@ -43,6 +45,8 @@ if [[ ! -f .env ]]; then
     yellow "      DOMAIN, ACME_EMAIL"
     yellow "      JELLYFIN_URL"
     yellow "      BASIC_AUTH_HASH (docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-pw')"
+    yellow "      OC_ADMIN_PASSWORD (8+ chars, mixed case + digit + special)"
+    yellow "      OC_UID_GID (id -u $USER and id -g $USER on the host)"
 else
     yellow "==> .env exists, leaving it alone"
 fi

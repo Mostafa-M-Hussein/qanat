@@ -12,6 +12,9 @@ aria2-config/
 jellyfin/config/
 jellyfin/cache/
 navidrome/data/
+opencloud/config/
+opencloud/data/
+homepage/icons/
 
 # User content
 files/

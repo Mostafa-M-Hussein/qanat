@@ -9,10 +9,12 @@ English: [README.md](./README.md)
 
 ## المكونات
 
+- **homepage** - dashboard واحد فيه لينك لكل الخدمات تحت
 - **aria2-pro** + **ariang** - تحميل multi-connection (http + torrent)
 - **metube** - yt-dlp بواجهة ويب (يوتيوب + 1000 موقع تاني)
 - **jellyfin** - بث فيديو
 - **navidrome** - بث موسيقى (اختياري)
+- **opencloud** - ملفات ومشاركة ومزامنة (نسخة أوروبية من owncloud infinite scale)
 - **caddy** - reverse proxy بـ TLS تلقائي + Basic Auth
 - **cloudflared** - tunnel من غير ما تفتح بورتات (اختياري)
 - **warp** - socks5 لتخطي حظر يوتيوب لـ IPs الـ datacenter (اختياري)
@@ -44,9 +46,11 @@ $EDITOR .env
 docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-pw'
 
 # DNS:
+#   example.com           A  <vps-ip>   (homepage)
 #   jellyfin.example.com  A  <vps-ip>
 #   aria.example.com      A  <vps-ip>
 #   metube.example.com    A  <vps-ip>
+#   cloud.example.com     A  <vps-ip>   (opencloud)
 
 # الجدار الناري: افتح 80, 443, 443/udp, 6888
 

@@ -9,10 +9,12 @@ built for egypt-tier last-mile internet.
 
 ## what's in it
 
+- **homepage** - one dashboard linking out to everything below
 - **aria2-pro** + **ariang** - multi-connection http/bt downloads
 - **metube** - yt-dlp web ui (youtube + 1000 other sites)
 - **jellyfin** - video streaming
 - **navidrome** - music streaming (optional)
+- **opencloud** - files, sharing, sync (eu fork of owncloud infinite scale)
 - **caddy** - tls reverse proxy with letsencrypt + basic auth
 - **cloudflared** - optional cf tunnel (no open ports)
 - **warp** - optional socks5 to bypass yt's datacenter ip block
@@ -45,9 +47,11 @@ docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-pw'
 # paste output into BASIC_AUTH_HASH in .env
 
 # point dns at the vps:
+#   example.com           A  <vps-ip>   (homepage)
 #   jellyfin.example.com  A  <vps-ip>
 #   aria.example.com      A  <vps-ip>
 #   metube.example.com    A  <vps-ip>
+#   cloud.example.com     A  <vps-ip>   (opencloud)
 
 # open firewall: 80, 443, 443/udp, 6888 (bt)
 
