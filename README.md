@@ -71,7 +71,9 @@ docker compose --profile sso up -d       # + keycloak + oauth2-proxy gate
 docker compose --profile authelia up -d  # + authelia (lighter alternative)
 ```
 
-sso setup steps live in [docs/sso.md](./docs/sso.md).
+sso setup steps live in [docs/sso.md](./docs/sso.md). already running aria2
+or jellyfin and want to switch over without re-downloading? see
+[docs/migration.md](./docs/migration.md).
 
 ## three ways to reach a service
 

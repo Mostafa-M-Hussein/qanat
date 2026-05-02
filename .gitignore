@@ -8,16 +8,15 @@ caddy/data/
 caddy/config/
 
 # Application state
-aria2-config/
-jellyfin/config/
-jellyfin/cache/
-navidrome/data/
-opencloud/config/
-opencloud/data/
-homepage/icons/
-keycloak/postgres/
-authelia/data/
-authelia/secrets/
+/aria2-config
+/jellyfin
+/navidrome
+/opencloud/config
+/opencloud/data
+/homepage/icons
+/keycloak/postgres
+/authelia/data
+/authelia/secrets
 config/authelia/users_database.yml
 
 # User content
@@ -38,3 +37,6 @@ examples/cookies.txt
 *.swp
 .idea/
 .vscode/
+
+# host-specific overrides (this machine's migration artifacts, not the blueprint)
+docker-compose.override.yml
