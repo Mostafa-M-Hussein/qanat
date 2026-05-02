@@ -17,7 +17,6 @@ built for egypt-tier last-mile internet.
 - **opencloud** - files, sharing, sync (eu fork of owncloud infinite scale)
 - **collabora** - online office editor for opencloud docs (optional)
 - **keycloak** + **oauth2-proxy** OR **authelia** - one-login gate (optional)
-- **drawio** - self-hosted diagrams.net for editing the architecture (optional)
 - **caddy** - tls reverse proxy with letsencrypt + basic auth
 - **cloudflared** - optional cf tunnel (no open ports)
 - **warp** - optional socks5 to bypass yt's datacenter ip block
@@ -45,17 +44,17 @@ egypt last-mile  <-- ssh tunnel / tls -->  vps  <-- gigabit -->  internet
   - [netcup](https://www.netcup.eu/) - rs series. cheap, generous bandwidth.
   - [hetzner](https://www.hetzner.com/cloud) - ccx / cpx series. excellent
     peering to almost everywhere, dedicated cpu options.
-- a **domain name** you own. set dns wildcards or per-subdomain records at
-  your registrar (cloudflare, porkbun, namecheap - any of them).
+- a **domain name**. don't have one? see [docs/domains.md](./docs/domains.md)
+  for free (`duckdns.org`) and cheap ($1-3/yr `.xyz` at porkbun) options.
 - **docker** and **docker compose v2** on the vps.
 - ~50 gb of disk for the stack itself, plus whatever you want for media.
 
 ## architecture
 
-renders below on github. to edit:
-- run your own copy: `docker compose --profile diagram up -d` then visit
-  `https://diagram.${DOMAIN}` and open `docs/architecture.drawio`
-- or use [app.diagrams.net](https://app.diagrams.net/#Hhttps%3A%2F%2Fgithub.com%2FMostafa-M-Hussein%2Fqanat%2Fblob%2Fmain%2Fdocs%2Farchitecture.drawio) (no install)
+renders below on github. to edit `docs/architecture.drawio`:
+- open in [app.diagrams.net](https://app.diagrams.net/#Hhttps%3A%2F%2Fgithub.com%2FMostafa-M-Hussein%2Fqanat%2Fblob%2Fmain%2Fdocs%2Farchitecture.drawio) (no install)
+- or local: `docker run --rm -p 8080:8080 jgraph/drawio` then open the file
+- or vscode: install the "draw.io integration" extension
 
 ```mermaid
 flowchart LR
@@ -143,7 +142,6 @@ docker compose --profile tunnel up -d    # + cloudflare tunnel
 docker compose --profile office up -d    # + collabora office editor
 docker compose --profile sso up -d       # + keycloak + oauth2-proxy gate
 docker compose --profile authelia up -d  # + authelia (lighter alternative)
-docker compose --profile diagram up -d   # + self-hosted drawio editor
 ```
 
 sso setup steps live in [docs/sso.md](./docs/sso.md). already running aria2
