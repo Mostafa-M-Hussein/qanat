@@ -161,6 +161,52 @@ services:
       - "127.0.0.1:40000:1080"
     logging: *default-logging
 
+  # opencloud: file management + sharing (the "drive" half of the stack).
+  # eu-led fork of owncloud infinite scale. caddy terminates tls so we
+  # set PROXY_TLS=false and bind to loopback.
+  opencloud:
+    image: opencloudeu/opencloud-rolling:${OC_DOCKER_TAG:-6.1.0}
+    container_name: qanat-opencloud
+    restart: unless-stopped
+    user: "${OC_UID_GID:-1000:1000}"
+    entrypoint: ["/bin/sh"]
+    command: ["-c", "opencloud init || true; opencloud server"]
+    environment:
+      OC_URL: https://cloud.${DOMAIN:-localhost}
+      OC_LOG_LEVEL: ${OC_LOG_LEVEL:-info}
+      PROXY_TLS: "false"
+      OC_INSECURE: "false"
+      IDM_ADMIN_PASSWORD: ${OC_ADMIN_PASSWORD}
+      IDM_CREATE_DEMO_USERS: "false"
+      PROXY_CSP_CONFIG_FILE_LOCATION: /etc/opencloud/csp.yaml
+      OC_PASSWORD_POLICY_BANNED_PASSWORDS_LIST: banned-password-list.txt
+      OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD: "true"
+    volumes:
+      - ./config/opencloud/csp.yaml:/etc/opencloud/csp.yaml:ro
+      - ./config/opencloud/banned-password-list.txt:/etc/opencloud/banned-password-list.txt:ro
+      - ./opencloud/config:/etc/opencloud
+      - ./opencloud/data:/var/lib/opencloud
+    ports:
+      - "127.0.0.1:9200:9200"
+    logging: *default-logging
+
+  # homepage: single-page dashboard linking out to every service above.
+  # config lives in ./homepage/config/*.yaml - edit there, no rebuild.
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: qanat-homepage
+    restart: unless-stopped
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=${DOMAIN:-localhost}
+      - PUID=${PUID:-0}
+      - PGID=${PGID:-0}
+    volumes:
+      - ./homepage/config:/app/config
+      - ./homepage/icons:/app/public/icons
+    ports:
+      - "127.0.0.1:3050:3000"
+    logging: *default-logging
+
 networks:
   default:
     name: qanat

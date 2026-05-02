@@ -54,3 +54,24 @@ metube.{$DOMAIN} {
 # music.{$DOMAIN} {
 #     reverse_proxy navidrome:4533
 # }
+
+# ---------------------------------------------------------------
+# OpenCloud - files + sharing. Has its own auth (admin user + ldap).
+# ---------------------------------------------------------------
+cloud.{$DOMAIN} {
+    reverse_proxy opencloud:9200 {
+        flush_interval -1
+    }
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+        X-Content-Type-Options "nosniff"
+    }
+}
+
+# ---------------------------------------------------------------
+# Homepage - dashboard at the bare domain. Links out to everything else.
+# ---------------------------------------------------------------
+{$DOMAIN} {
+    reverse_proxy homepage:3000
+}
