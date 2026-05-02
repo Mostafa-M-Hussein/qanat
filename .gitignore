@@ -15,6 +15,7 @@ navidrome/data/
 opencloud/config/
 opencloud/data/
 homepage/icons/
+keycloak/postgres/
 
 # User content
 files/
