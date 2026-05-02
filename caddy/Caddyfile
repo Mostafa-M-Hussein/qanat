@@ -1,0 +1,56 @@
+# caddy config for qanat. auto-renews tls via letsencrypt.
+
+{
+    email {$ACME_EMAIL}
+    # Sensible defaults; uncomment to enable HTTP/3 explicitly:
+    # servers { protocols h1 h2 h3 }
+}
+
+# ---------------------------------------------------------------
+# Jellyfin - public, but rate-limited to deter abuse.
+# ---------------------------------------------------------------
+jellyfin.{$DOMAIN} {
+    reverse_proxy jellyfin:8096 {
+        flush_interval -1
+    }
+
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer-when-downgrade"
+    }
+}
+
+# ---------------------------------------------------------------
+# AriaNG - private, basic-auth gated.
+# ---------------------------------------------------------------
+aria.{$DOMAIN} {
+    basic_auth {
+        {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+    }
+    reverse_proxy ariang:6880
+
+    # aria2 RPC endpoint (AriaNG calls /jsonrpc on same host)
+    @rpc path /jsonrpc /jsonrpc/*
+    handle @rpc {
+        reverse_proxy aria2:6800
+    }
+}
+
+# ---------------------------------------------------------------
+# MeTube - private, basic-auth gated.
+# ---------------------------------------------------------------
+metube.{$DOMAIN} {
+    basic_auth {
+        {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+    }
+    reverse_proxy metube:8081
+}
+
+# ---------------------------------------------------------------
+# Navidrome (uncomment if you enabled the music profile)
+# ---------------------------------------------------------------
+# music.{$DOMAIN} {
+#     reverse_proxy navidrome:4533
+# }
