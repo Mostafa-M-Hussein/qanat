@@ -1,0 +1,62 @@
+---
+theme: dark
+
+server:
+  address: tcp://0.0.0.0:9091/
+  buffers:
+    read: 4096
+    write: 4096
+
+log:
+  level: info
+  format: text
+
+totp:
+  issuer: qanat
+  period: 30
+  skew: 1
+
+authentication_backend:
+  password_reset:
+    disable: true
+  refresh_interval: 5m
+  file:
+    path: /config/users_database.yml
+    password:
+      algorithm: argon2id
+      iterations: 3
+      key_length: 32
+      salt_length: 16
+      memory: 65536
+      parallelism: 4
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain:
+        - "*.{{ env "QANAT_DOMAIN" }}"
+        - "{{ env "QANAT_DOMAIN" }}"
+      policy: one_factor
+
+session:
+  name: authelia_session
+  same_site: lax
+  expiration: 24h
+  inactivity: 2h
+  remember_me: 30d
+  cookies:
+    - domain: "{{ env "QANAT_DOMAIN" }}"
+      authelia_url: "https://auth.{{ env "QANAT_DOMAIN" }}"
+
+regulation:
+  max_retries: 3
+  find_time: 2m
+  ban_time: 10m
+
+storage:
+  local:
+    path: /data/db.sqlite3
+
+notifier:
+  filesystem:
+    filename: /data/notification.txt

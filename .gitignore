@@ -16,6 +16,9 @@ opencloud/config/
 opencloud/data/
 homepage/icons/
 keycloak/postgres/
+authelia/data/
+authelia/secrets/
+config/authelia/users_database.yml
 
 # User content
 files/

@@ -122,7 +122,50 @@ same uuid. only do this on a fresh install or after backing up
 
 ## why this is overkill for 3 friends
 
-if you just want "one login for the dashboard + downloaders," skip keycloak
-and use **authelia** instead - file-based config, ~50mb ram, identical
-forward_auth pattern in caddy. keycloak makes sense once you have 10+ users
-or want real oidc for external apps.
+keycloak is ~600mb ram, full realm management, postgres-backed. for a small
+group `--profile authelia` is the right call.
+
+## authelia (the light option)
+
+```bash
+./setup.sh   # generates JWT_SECRET, SESSION_SECRET, STORAGE_ENCRYPTION_KEY
+             # also creates config/authelia/users_database.yml from the example
+```
+
+set the admin password hash:
+
+```bash
+docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'your-pw'
+```
+
+paste the resulting `$argon2id$...` string into the `password:` field of
+`config/authelia/users_database.yml`. while you're there, fix the email and
+add more users below the first.
+
+bring it up and add dns:
+
+```
+auth.example.com  A  <vps-ip>
+```
+
+```bash
+docker compose --profile authelia up -d
+```
+
+gate a site - same pattern as keycloak, just a different snippet:
+
+```
+aria.{$DOMAIN} {
+    import authelia_gate
+    reverse_proxy ariang:6880
+    @rpc path /jsonrpc /jsonrpc/*
+    handle @rpc { reverse_proxy aria2:6800 }
+}
+```
+
+then `docker compose restart caddy`. browser hits `aria.example.com`,
+authelia redirects to login, after login you land back.
+
+note: authelia and keycloak both want `auth.{$DOMAIN}`. pick one. if you go
+authelia, edit the `auth.{$DOMAIN}` block in `caddy/Caddyfile` to
+`reverse_proxy authelia:9091`.

@@ -16,7 +16,7 @@ built for egypt-tier last-mile internet.
 - **navidrome** - music streaming (optional)
 - **opencloud** - files, sharing, sync (eu fork of owncloud infinite scale)
 - **collabora** - online office editor for opencloud docs (optional)
-- **keycloak** + **oauth2-proxy** - one-login gate for everything (optional)
+- **keycloak** + **oauth2-proxy** OR **authelia** - one-login gate (optional)
 - **caddy** - tls reverse proxy with letsencrypt + basic auth
 - **cloudflared** - optional cf tunnel (no open ports)
 - **warp** - optional socks5 to bypass yt's datacenter ip block
@@ -68,6 +68,7 @@ docker compose --profile warp up -d      # + warp socks5 (yt bypass)
 docker compose --profile tunnel up -d    # + cloudflare tunnel
 docker compose --profile office up -d    # + collabora office editor
 docker compose --profile sso up -d       # + keycloak + oauth2-proxy gate
+docker compose --profile authelia up -d  # + authelia (lighter alternative)
 ```
 
 sso setup steps live in [docs/sso.md](./docs/sso.md).

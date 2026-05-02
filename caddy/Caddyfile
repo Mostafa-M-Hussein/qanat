@@ -4,8 +4,7 @@
     email {$ACME_EMAIL}
 }
 
-# shared snippet: gate a site behind keycloak via oauth2-proxy.
-# only kicks in when --profile sso is up.
+# sso_gate: forward-auth via keycloak + oauth2-proxy (--profile sso)
 (sso_gate) {
     forward_auth oauth2-proxy:4180 {
         uri /oauth2/auth
@@ -13,6 +12,19 @@
         @error status 401
         handle_response @error {
             redir * https://auth-gate.{$DOMAIN}/oauth2/start?rd={scheme}://{host}{uri} 302
+        }
+    }
+}
+
+# authelia_gate: forward-auth via authelia (--profile authelia)
+# pick one or the other - don't use both at the same time.
+(authelia_gate) {
+    forward_auth authelia:9091 {
+        uri /api/authz/forward-auth
+        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+        @error status 401
+        handle_response @error {
+            redir * https://auth.{$DOMAIN}/?rd={scheme}://{host}{uri} 302
         }
     }
 }
@@ -108,6 +120,8 @@ collaboration.{$DOMAIN} {
 # Keycloak (profile: sso) and the oauth2-proxy callback host.
 # ---------------------------------------------------------------
 auth.{$DOMAIN} {
+    # if profile=sso (keycloak) is up, this serves keycloak.
+    # if profile=authelia is up instead, change to: reverse_proxy authelia:9091
     reverse_proxy keycloak:8080
 }
 

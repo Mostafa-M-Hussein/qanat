@@ -18,6 +18,8 @@ mkdir -p \
     opencloud/config opencloud/data \
     homepage/icons \
     keycloak/postgres \
+    authelia/data authelia/secrets \
+    config/authelia \
     examples
 
 if [[ ! -f examples/cookies.txt.example ]]; then
@@ -26,6 +28,22 @@ if [[ ! -f examples/cookies.txt.example ]]; then
 # replace with a real export from your browser if you need
 # age-gated / login-required youtube downloads.
 EOF
+fi
+
+# authelia secrets - generated once, never checked in
+if [[ ! -f authelia/secrets/JWT_SECRET ]] && command -v openssl >/dev/null 2>&1; then
+    green "==> generating authelia secrets"
+    openssl rand -hex 32 > authelia/secrets/JWT_SECRET
+    openssl rand -hex 32 > authelia/secrets/SESSION_SECRET
+    openssl rand -hex 64 > authelia/secrets/STORAGE_ENCRYPTION_KEY
+    chmod 600 authelia/secrets/*
+fi
+
+# seed users_database.yml from the example if missing
+if [[ ! -f config/authelia/users_database.yml && -f config/authelia/users_database.yml.example ]]; then
+    cp config/authelia/users_database.yml.example config/authelia/users_database.yml
+    yellow "==> created config/authelia/users_database.yml - replace the password hash"
+    yellow "    docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'your-pw'"
 fi
 
 if [[ ! -f .env ]]; then
