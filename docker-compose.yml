@@ -349,6 +349,20 @@ services:
       - "127.0.0.1:9091:9091"
     logging: *default-logging
 
+  # drawio: self-hosted diagrams.net for editing docs/architecture.drawio.
+  # profile: diagram. fully client-side - no persistence needed.
+  drawio:
+    image: jgraph/drawio:latest
+    container_name: qanat-drawio
+    restart: unless-stopped
+    profiles: [diagram]
+    environment:
+      - DRAWIO_BASE_URL=https://diagram.${DOMAIN:-localhost}
+      - DRAWIO_CSP_HEADER=
+    ports:
+      - "127.0.0.1:8083:8080"
+    logging: *default-logging
+
   # homepage: single-page dashboard linking out to every service above.
   # config lives in ./homepage/config/*.yaml - edit there, no rebuild.
   homepage:

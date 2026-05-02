@@ -128,3 +128,10 @@ auth.{$DOMAIN} {
 auth-gate.{$DOMAIN} {
     reverse_proxy oauth2-proxy:4180
 }
+
+# ---------------------------------------------------------------
+# drawio (profile: diagram). gate this if you don't want it public.
+# ---------------------------------------------------------------
+diagram.{$DOMAIN} {
+    reverse_proxy drawio:8080
+}

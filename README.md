@@ -17,6 +17,7 @@ built for egypt-tier last-mile internet.
 - **opencloud** - files, sharing, sync (eu fork of owncloud infinite scale)
 - **collabora** - online office editor for opencloud docs (optional)
 - **keycloak** + **oauth2-proxy** OR **authelia** - one-login gate (optional)
+- **drawio** - self-hosted diagrams.net for editing the architecture (optional)
 - **caddy** - tls reverse proxy with letsencrypt + basic auth
 - **cloudflared** - optional cf tunnel (no open ports)
 - **warp** - optional socks5 to bypass yt's datacenter ip block
@@ -34,6 +35,79 @@ egypt last-mile  <-- ssh tunnel / tls -->  vps  <-- gigabit -->  internet
                                        aria2 / yt-dlp
                                             |
                                        jellyfin / sshfs
+```
+
+## what you need first
+
+- a vps with **root access** and a public ipv4. providers that actually
+  matter for our use case (gigabit symmetric, decent peering to africa /
+  middle east, low-priced bandwidth):
+  - [netcup](https://www.netcup.eu/) - rs series. cheap, generous bandwidth.
+  - [hetzner](https://www.hetzner.com/cloud) - ccx / cpx series. excellent
+    peering to almost everywhere, dedicated cpu options.
+- a **domain name** you own. set dns wildcards or per-subdomain records at
+  your registrar (cloudflare, porkbun, namecheap - any of them).
+- **docker** and **docker compose v2** on the vps.
+- ~50 gb of disk for the stack itself, plus whatever you want for media.
+
+## architecture
+
+renders below on github. to edit:
+- run your own copy: `docker compose --profile diagram up -d` then visit
+  `https://diagram.${DOMAIN}` and open `docs/architecture.drawio`
+- or use [app.diagrams.net](https://app.diagrams.net/#Hhttps%3A%2F%2Fgithub.com%2FMostafa-M-Hussein%2Fqanat%2Fblob%2Fmain%2Fdocs%2Farchitecture.drawio) (no install)
+
+```mermaid
+flowchart LR
+    laptop["laptop / phone<br/>(egypt last-mile)"]
+
+    subgraph net["public internet"]
+      yt[YouTube]
+      bt[BT peers]
+      cdn[CDNs / sources]
+    end
+
+    subgraph vps["VPS &nbsp;(netcup / hetzner, gigabit)"]
+      caddy["caddy<br/>tls + auth"]
+      homepage[homepage<br/>dashboard]
+
+      subgraph dl["downloads"]
+        aria2[aria2-pro]
+        metube[metube]
+      end
+
+      subgraph media["media"]
+        jellyfin[jellyfin]
+        navidrome[navidrome]
+      end
+
+      subgraph cloud["files"]
+        opencloud[opencloud]
+        collabora[collabora]
+      end
+
+      sso[keycloak / authelia]
+      warp[warp socks5]
+      disk[("shared volume<br/>downloads + media")]
+    end
+
+    laptop -->|https / ssh tunnel| caddy
+    caddy --> homepage
+    caddy --> aria2 & metube & jellyfin & navidrome & opencloud
+    caddy -.optional gate.-> sso
+
+    aria2 --> disk
+    metube --> disk
+    jellyfin --> disk
+    navidrome --> disk
+    opencloud --> disk
+
+    aria2 -->|http / bt| bt
+    aria2 -->|http| cdn
+    metube -->|via warp| warp
+    warp --> yt
+
+    opencloud <--> collabora
 ```
 
 ## quick start
@@ -69,6 +143,7 @@ docker compose --profile tunnel up -d    # + cloudflare tunnel
 docker compose --profile office up -d    # + collabora office editor
 docker compose --profile sso up -d       # + keycloak + oauth2-proxy gate
 docker compose --profile authelia up -d  # + authelia (lighter alternative)
+docker compose --profile diagram up -d   # + self-hosted drawio editor
 ```
 
 sso setup steps live in [docs/sso.md](./docs/sso.md). already running aria2

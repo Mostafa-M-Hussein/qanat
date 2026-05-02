@@ -1,0 +1,163 @@
+<mxfile host="app.diagrams.net" agent="qanat" version="24.0.0">
+  <diagram name="qanat" id="qanat-architecture">
+    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- left: client -->
+        <mxCell id="laptop" value="laptop / phone&#xa;(egypt last-mile)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="160" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- VPS container -->
+        <mxCell id="vps" value="VPS &#x2014; netcup / hetzner (gigabit symmetric)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1f7a1f;strokeWidth=2;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="280" y="40" width="780" height="800" as="geometry" />
+        </mxCell>
+
+        <!-- caddy at edge -->
+        <mxCell id="caddy" value="caddy&#xa;tls + auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="320" y="100" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- homepage -->
+        <mxCell id="homepage" value="homepage&#xa;dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="500" y="100" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- sso -->
+        <mxCell id="sso" value="sso gate&#xa;(keycloak / authelia)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="680" y="100" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- drawio -->
+        <mxCell id="drawio" value="drawio&#xa;editor (--profile diagram)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="880" y="100" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- downloads group -->
+        <mxCell id="downloads" value="downloads" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;fontStyle=2;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="320" y="220" width="320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="aria2" value="aria2-pro&#xa;http + bittorrent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="340" y="260" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="metube" value="metube&#xa;yt-dlp ui" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="490" y="260" width="130" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- media group -->
+        <mxCell id="mediag" value="media" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;fontStyle=2;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="320" y="380" width="320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="jellyfin" value="jellyfin&#xa;video streaming" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="340" y="420" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="navidrome" value="navidrome&#xa;subsonic music" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="490" y="420" width="130" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- files group -->
+        <mxCell id="filesg" value="files / collab" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;fontStyle=2;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="320" y="540" width="320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="opencloud" value="opencloud&#xa;files + sharing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="340" y="580" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="collabora" value="collabora&#xa;office editor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="490" y="580" width="130" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- warp socks5 -->
+        <mxCell id="warp" value="warp socks5&#xa;(yt bypass)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="700" y="280" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- shared volume -->
+        <mxCell id="disk" value="shared volume&#xa;downloads + media" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="450" y="720" width="160" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- right column: internet -->
+        <mxCell id="internet" value="public internet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;fontStyle=2;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="220" width="240" height="380" as="geometry" />
+        </mxCell>
+        <mxCell id="yt" value="YouTube" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="260" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="bt" value="BitTorrent peers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="380" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="cdn" value="CDNs / sources" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="500" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- edges: laptop -> caddy -->
+        <mxCell id="e1" value="https / ssh tunnel" style="endArrow=classic;html=1;rounded=0;fontSize=10;" edge="1" parent="1" source="laptop" target="caddy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- caddy fanout -->
+        <mxCell id="e2" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="caddy" target="homepage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="caddy" target="aria2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="caddy" target="metube">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="caddy" target="jellyfin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="caddy" target="opencloud">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- caddy -> sso (forward auth) -->
+        <mxCell id="e7" value="forward_auth" style="endArrow=classic;html=1;rounded=0;dashed=1;fontSize=10;" edge="1" parent="1" source="caddy" target="sso">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- services -> disk -->
+        <mxCell id="e10" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="aria2" target="disk">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="metube" target="disk">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="jellyfin" target="disk">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="navidrome" target="disk">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="opencloud" target="disk">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- opencloud <-> collabora -->
+        <mxCell id="e15" style="endArrow=classic;html=1;rounded=0;startArrow=classic;startFill=1;" edge="1" parent="1" source="opencloud" target="collabora">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- aria2 -> bt + cdn -->
+        <mxCell id="e20" value="bt" style="endArrow=classic;html=1;rounded=0;fontSize=10;" edge="1" parent="1" source="aria2" target="bt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="http" style="endArrow=classic;html=1;rounded=0;fontSize=10;" edge="1" parent="1" source="aria2" target="cdn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- metube -> warp -> youtube -->
+        <mxCell id="e22" value="socks5" style="endArrow=classic;html=1;rounded=0;fontSize=10;" edge="1" parent="1" source="metube" target="warp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="warp" target="yt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
