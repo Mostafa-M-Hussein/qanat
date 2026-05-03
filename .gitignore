@@ -13,6 +13,7 @@ caddy/config/
 /homepage/icons
 homepage/config/logs/
 homepage/config/proxmox.yaml
+homepage/config/services.yaml
 
 files/
 media/

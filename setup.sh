@@ -27,6 +27,12 @@ if [[ ! -f examples/cookies.txt.example ]]; then
 EOF
 fi
 
+# homepage cards - copy template if user hasn't customized one yet
+if [[ ! -f homepage/config/services.yaml && -f homepage/config/services.yaml.example ]]; then
+    cp homepage/config/services.yaml.example homepage/config/services.yaml
+    yellow "==> created homepage/config/services.yaml - edit hrefs to your real subdomains"
+fi
+
 if [[ ! -f .env ]]; then
     green "==> generating .env"
     cp .env.example .env
