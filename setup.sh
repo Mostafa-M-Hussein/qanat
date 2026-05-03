@@ -11,8 +11,7 @@ green "==> creating data directories"
 mkdir -p \
     aria2-config \
     caddy/data caddy/config \
-    files \
-    media/{Movies,TV,Music,YouTube} \
+    media/{Movies,TV,Music,YouTube,Downloads} \
     jellyfin/config jellyfin/cache \
     navidrome/data \
     opencloud/config opencloud/data \

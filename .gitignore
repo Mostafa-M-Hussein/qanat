@@ -15,6 +15,9 @@ homepage/config/logs/
 homepage/config/proxmox.yaml
 homepage/config/services.yaml
 
+# personal diagram, not part of the public blueprint
+docs/architecture.drawio
+
 files/
 media/
 *.mkv
