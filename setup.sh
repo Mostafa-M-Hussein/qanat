@@ -17,9 +17,6 @@ mkdir -p \
     navidrome/data \
     opencloud/config opencloud/data \
     homepage/icons \
-    keycloak/postgres \
-    authelia/data authelia/secrets \
-    config/authelia \
     examples
 
 if [[ ! -f examples/cookies.txt.example ]]; then
@@ -28,22 +25,6 @@ if [[ ! -f examples/cookies.txt.example ]]; then
 # replace with a real export from your browser if you need
 # age-gated / login-required youtube downloads.
 EOF
-fi
-
-# authelia secrets - generated once, never checked in
-if [[ ! -f authelia/secrets/JWT_SECRET ]] && command -v openssl >/dev/null 2>&1; then
-    green "==> generating authelia secrets"
-    openssl rand -hex 32 > authelia/secrets/JWT_SECRET
-    openssl rand -hex 32 > authelia/secrets/SESSION_SECRET
-    openssl rand -hex 64 > authelia/secrets/STORAGE_ENCRYPTION_KEY
-    chmod 600 authelia/secrets/*
-fi
-
-# seed users_database.yml from the example if missing
-if [[ ! -f config/authelia/users_database.yml && -f config/authelia/users_database.yml.example ]]; then
-    cp config/authelia/users_database.yml.example config/authelia/users_database.yml
-    yellow "==> created config/authelia/users_database.yml - replace the password hash"
-    yellow "    docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'your-pw'"
 fi
 
 if [[ ! -f .env ]]; then
@@ -55,19 +36,13 @@ if [[ ! -f .env ]]; then
         sed -i.bak "s|ARIA2_RPC_SECRET=.*|ARIA2_RPC_SECRET=${secret}|" .env
         rm -f .env.bak
         green "    aria2 rpc secret generated"
-    else
-        yellow "    openssl missing - set ARIA2_RPC_SECRET in .env manually"
     fi
 
     yellow ""
     yellow "    .env created. before starting, set:"
-    yellow "      DOMAIN, ACME_EMAIL"
-    yellow "      JELLYFIN_URL"
+    yellow "      DOMAIN, ACME_EMAIL, JELLYFIN_URL"
     yellow "      BASIC_AUTH_HASH (docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-pw')"
     yellow "      OC_ADMIN_PASSWORD (8+ chars, mixed case + digit + special)"
-    yellow "      OC_UID_GID (id -u $USER and id -g $USER on the host)"
-else
-    yellow "==> .env exists, leaving it alone"
 fi
 
 cat <<'EOF'
@@ -75,14 +50,15 @@ cat <<'EOF'
 ==> done.
 
 next:
-  1. edit .env (DOMAIN, ACME_EMAIL, JELLYFIN_URL, BASIC_AUTH_HASH)
+  1. edit .env
   2. point dns at this vps for *.DOMAIN
-  3. open firewall: 80, 443, 443/udp, ARIA2_BT_PORT (default 6888)
+  3. open firewall: 80, 443, 443/udp, 6888 (bittorrent)
   4. docker compose up -d
 
-profiles:
-  music    docker compose --profile music up -d
-  warp     docker compose --profile warp up -d
-  tunnel   docker compose --profile tunnel up -d   (then close 80/443)
+optional:
+  docker compose --profile music up -d     # navidrome
+  docker compose --profile office up -d    # collabora editor for opencloud
+  docker compose --profile warp up -d      # warp socks5 (yt bypass)
+  docker compose --profile tunnel up -d    # cloudflare tunnel (no open ports)
 
 EOF

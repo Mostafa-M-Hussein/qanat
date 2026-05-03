@@ -4,127 +4,58 @@
     email {$ACME_EMAIL}
 }
 
-# sso_gate: forward-auth via keycloak + oauth2-proxy (--profile sso)
-(sso_gate) {
-    forward_auth oauth2-proxy:4180 {
-        uri /oauth2/auth
-        copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Preferred-Username
-        @error status 401
-        handle_response @error {
-            redir * https://auth-gate.{$DOMAIN}/oauth2/start?rd={scheme}://{host}{uri} 302
-        }
-    }
+# the bare domain serves the homepage dashboard.
+{$DOMAIN} {
+    reverse_proxy homepage:3000
 }
 
-# authelia_gate: forward-auth via authelia (--profile authelia)
-# pick one or the other - don't use both at the same time.
-(authelia_gate) {
-    forward_auth authelia:9091 {
-        uri /api/authz/forward-auth
-        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
-        @error status 401
-        handle_response @error {
-            redir * https://auth.{$DOMAIN}/?rd={scheme}://{host}{uri} 302
-        }
-    }
-}
-
-# ---------------------------------------------------------------
-# Jellyfin - public, but rate-limited to deter abuse.
-# ---------------------------------------------------------------
+# jellyfin - public, has its own login.
 jellyfin.{$DOMAIN} {
     reverse_proxy jellyfin:8096 {
         flush_interval -1
     }
-
     encode zstd gzip
-    header {
-        Strict-Transport-Security "max-age=31536000;"
-        X-Content-Type-Options "nosniff"
-        Referrer-Policy "no-referrer-when-downgrade"
-    }
 }
 
-# ---------------------------------------------------------------
-# AriaNG - private, basic-auth gated.
-# ---------------------------------------------------------------
+# ariang (aria2 ui) + the aria2 rpc on the same host.
+# basic-auth so randoms can't queue downloads on your vps.
 aria.{$DOMAIN} {
-    # uncomment to switch from basic-auth to keycloak (--profile sso):
-    # import sso_gate
     basic_auth {
         {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
     }
-    reverse_proxy ariang:6880
-
-    # aria2 RPC endpoint (AriaNG calls /jsonrpc on same host)
     @rpc path /jsonrpc /jsonrpc/*
     handle @rpc {
         reverse_proxy aria2:6800
     }
+    reverse_proxy ariang:6880
 }
 
-# ---------------------------------------------------------------
-# MeTube - private, basic-auth gated.
-# ---------------------------------------------------------------
+# metube (yt-dlp ui).
 metube.{$DOMAIN} {
-    # uncomment to switch from basic-auth to keycloak (--profile sso):
-    # import sso_gate
     basic_auth {
         {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
     }
     reverse_proxy metube:8081
 }
 
-# ---------------------------------------------------------------
-# Navidrome (uncomment if you enabled the music profile)
-# ---------------------------------------------------------------
+# navidrome (--profile music). uncomment to expose.
 # music.{$DOMAIN} {
 #     reverse_proxy navidrome:4533
 # }
 
-# ---------------------------------------------------------------
-# OpenCloud - files + sharing. Has its own auth (admin user + ldap).
-# ---------------------------------------------------------------
+# opencloud - files + sharing.
 cloud.{$DOMAIN} {
     reverse_proxy opencloud:9200 {
         flush_interval -1
     }
     encode zstd gzip
-    header {
-        Strict-Transport-Security "max-age=31536000;"
-        X-Content-Type-Options "nosniff"
-    }
 }
 
-# ---------------------------------------------------------------
-# Homepage - dashboard at the bare domain. Links out to everything else.
-# ---------------------------------------------------------------
-{$DOMAIN} {
-    reverse_proxy homepage:3000
-}
-
-# ---------------------------------------------------------------
-# Collabora online editor (profile: office). routes:
-#   collabora.DOMAIN     - the editor itself, public
-#   collaboration.DOMAIN - opencloud's WOPI bridge, internal-only path
-# ---------------------------------------------------------------
+# collabora online editor (--profile office).
 collabora.{$DOMAIN} {
     reverse_proxy collabora:9980
 }
 
 collaboration.{$DOMAIN} {
     reverse_proxy collaboration:9300
-}
-
-# ---------------------------------------------------------------
-# Keycloak (profile: sso) and the oauth2-proxy callback host.
-# ---------------------------------------------------------------
-auth.{$DOMAIN} {
-    # if profile=sso (keycloak) is up, this serves keycloak.
-    # if profile=authelia is up instead, change to: reverse_proxy authelia:9091
-    reverse_proxy keycloak:8080
-}
-
-auth-gate.{$DOMAIN} {
-    reverse_proxy oauth2-proxy:4180
 }
