@@ -1,25 +1,19 @@
-# Secrets and runtime config
 .env
 *.env
 !.env.example
 
-# Caddy ACME state (contains certs + account keys)
 caddy/data/
 caddy/config/
 
-# Application state
 /aria2-config
 /jellyfin
 /navidrome
 /opencloud/config
 /opencloud/data
 /homepage/icons
-/keycloak/postgres
-/authelia/data
-/authelia/secrets
-config/authelia/users_database.yml
+homepage/config/logs/
+homepage/config/proxmox.yaml
 
-# User content
 files/
 media/
 *.mkv
@@ -27,16 +21,14 @@ media/
 *.webm
 *.opus
 
-# Cookie files
 examples/cookies.txt
 *cookies.txt
 !examples/cookies.txt.example
 
-# Editor / OS
 .DS_Store
 *.swp
 .idea/
 .vscode/
 
-# host-specific overrides (this machine's migration artifacts, not the blueprint)
+# host-specific overrides
 docker-compose.override.yml
